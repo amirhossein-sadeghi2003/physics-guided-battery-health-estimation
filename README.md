@@ -6,6 +6,39 @@ The goal is to start with a real public battery aging dataset, build clear visua
 
 This is not a finished battery management system yet. The first version will focus on data loading, visualization, baseline modeling, and honest evaluation.
 
+
+## First Results
+
+The first processed dataset in this repository is built from the NASA battery aging files `B0005`, `B0006`, `B0007`, and `B0018`.
+
+So far, the project extracts discharge-cycle capacity values and visualizes capacity fade across cycles.
+
+Current processed table:
+
+- `data/processed/discharge_capacity.csv`
+
+Current result files:
+
+- `results/capacity_fade.png`
+- `results/capacity_fade_summary.txt`
+
+### Capacity Fade Plot
+
+![NASA Battery Capacity Fade](results/capacity_fade.png)
+
+### Capacity Fade Summary
+
+From the first four batteries:
+
+- `B0005`: capacity drop ≈ 28.62%
+- `B0006`: capacity drop ≈ 41.75%
+- `B0007`: capacity drop ≈ 24.25%
+- `B0018`: capacity drop ≈ 27.71%
+
+Among these four cells, `B0006` shows the largest relative capacity loss in the current subset.
+
+This is still an early data-processing stage. The project has not yet built predictive models or physics-guided constraints.
+
 ## Planned Direction
 
 The project will follow this path:
