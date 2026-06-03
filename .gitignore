@@ -17,3 +17,5 @@ models/
 .DS_Store
 .vscode/
 .idea/
+
+!data/processed/discharge_capacity.csv
