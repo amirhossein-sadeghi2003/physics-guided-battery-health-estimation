@@ -26,6 +26,27 @@ Current result files:
 
 ![NASA Battery Capacity Fade](results/capacity_fade.png)
 
+
+### Discharge Voltage Curve Example
+
+The repository also includes an example discharge-voltage visualization for `B0005`.
+
+This plot compares several discharge cycles from early, middle, and later life:
+
+- cycle 1
+- cycle 40
+- cycle 80
+- cycle 120
+- cycle 160
+
+Result file:
+
+- `results/b0005_discharge_voltage_curves.png`
+
+![B0005 Discharge Voltage Curves](results/b0005_discharge_voltage_curves.png)
+
+This figure makes the degradation behavior more concrete than a single capacity table. Later cycles show a shorter discharge trajectory and lower voltage sustain compared with earlier cycles.
+
 ### Capacity Fade Summary
 
 From the first four batteries:
