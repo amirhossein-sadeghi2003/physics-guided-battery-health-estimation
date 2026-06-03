@@ -36,11 +36,11 @@ def main():
     if not RAW_DIR.exists():
         raise FileNotFoundError(f"Missing raw data directory: {RAW_DIR}")
 
-    mat_files = sorted(RAW_DIR.glob("*.mat"))
+    mat_files = sorted(RAW_DIR.rglob("*.mat"))
 
     if not mat_files:
-        print("No .mat files found in data/raw/")
-        print("Download the NASA battery .mat files and place them in data/raw/.")
+        print("No .mat files found under data/raw/")
+        print("Download or extract the NASA battery .mat files under data/raw/.")
         return
 
     print(f"Found {len(mat_files)} .mat files")
