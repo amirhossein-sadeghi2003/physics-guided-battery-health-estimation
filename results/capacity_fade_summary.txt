@@ -1,0 +1,7 @@
+NASA battery capacity fade summary
+
+battery_id  discharge_cycles  first_capacity_ah  last_capacity_ah  min_capacity_ah  max_capacity_ah  capacity_drop_ah  capacity_drop_percent
+     B0005               168             1.8565            1.3251           1.2875           1.8565            0.5314                28.6244
+     B0006               168             2.0353            1.1857           1.1538           2.0353            0.8497                41.7455
+     B0007               168             1.8911            1.4325           1.4005           1.8911            0.4586                24.2509
+     B0018               132             1.8550            1.3411           1.3411           1.8550            0.5140                27.7063
