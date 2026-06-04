@@ -24,6 +24,10 @@ Current result files:
 - `results/normalized_soh.png`
 - `results/normalized_soh_summary.txt`
 - `results/b0005_discharge_voltage_curves.png`
+- `results/baseline_soh_prediction.png`
+- `results/baseline_soh_metric_comparison.png`
+- `results/baseline_soh_metrics.txt`
+- `results/baseline_soh_predictions.csv`
 
 ### Capacity Fade Plot
 
@@ -66,6 +70,35 @@ Result file:
 ![B0005 Discharge Voltage Curves](results/b0005_discharge_voltage_curves.png)
 
 This figure makes the degradation behavior more concrete than a single capacity table. Later cycles show a shorter discharge trajectory and lower voltage sustain compared with earlier cycles.
+
+### Baseline SOH Prediction
+
+The first modeling step is a simple later-cycle SOH prediction baseline.
+
+For each battery, the first 70% of discharge cycles are used for training and the last 30% are used for testing. This is an in-cell extrapolation setup, not a cross-battery generalization test.
+
+Two simple baselines are compared:
+
+- `naive_last_observed`: repeats the last SOH value seen during training
+- `quadratic_polynomial`: fits a degree-2 trend from discharge cycle index to SOH
+
+Result files:
+
+- `results/baseline_soh_prediction.png`
+- `results/baseline_soh_metric_comparison.png`
+- `results/baseline_soh_metrics.txt`
+- `results/baseline_soh_predictions.csv`
+
+![Baseline SOH Prediction](results/baseline_soh_prediction.png)
+
+![Baseline SOH Metric Comparison](results/baseline_soh_metric_comparison.png)
+
+In this first test, the naive baseline is stronger on average:
+
+- `naive_last_observed`: MAE = 0.0330, RMSE = 0.0386
+- `quadratic_polynomial`: MAE = 0.0467, RMSE = 0.0532
+
+This is a useful early result because it shows that a smoother trend model is not automatically better than a simple baseline. The next modeling step should compare stronger features or constraints against this naive reference.
 
 ### Capacity Fade Summary
 
@@ -142,7 +175,8 @@ Implemented so far:
 - capacity fade visualization
 - normalized SOH visualization
 - example discharge-voltage curve comparison for `B0005`
+- baseline later-cycle SOH prediction
 
 Next step:
 
-- build a simple baseline model for capacity or SOH prediction
+- compare stronger SOH models against the naive last-observed baseline

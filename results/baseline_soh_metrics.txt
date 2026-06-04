@@ -1,0 +1,30 @@
+Baseline SOH prediction metrics
+===============================
+
+Task: predict later-cycle normalized SOH from earlier cycles of the same battery
+Target: normalized SOH
+Train/test split: first 70% cycles train, last 30% cycles test
+
+Models:
+- naive_last_observed: repeats the last SOH value seen in the training split
+- quadratic_polynomial: degree-2 polynomial fitted to discharge_index vs SOH
+
+B0005:
+  naive_last_observed: train cycles = 117, test cycles = 51, MAE = 0.0356, RMSE = 0.0406
+  quadratic_polynomial: train cycles = 117, test cycles = 51, MAE = 0.0798, RMSE = 0.0897
+
+B0006:
+  naive_last_observed: train cycles = 117, test cycles = 51, MAE = 0.0446, RMSE = 0.0541
+  quadratic_polynomial: train cycles = 117, test cycles = 51, MAE = 0.0106, RMSE = 0.0132
+
+B0007:
+  naive_last_observed: train cycles = 117, test cycles = 51, MAE = 0.0293, RMSE = 0.0339
+  quadratic_polynomial: train cycles = 117, test cycles = 51, MAE = 0.0537, RMSE = 0.0589
+
+B0018:
+  naive_last_observed: train cycles = 92, test cycles = 40, MAE = 0.0227, RMSE = 0.0258
+  quadratic_polynomial: train cycles = 92, test cycles = 40, MAE = 0.0426, RMSE = 0.0509
+
+Average metrics:
+naive_last_observed: MAE = 0.0330, RMSE = 0.0386
+quadratic_polynomial: MAE = 0.0467, RMSE = 0.0532
