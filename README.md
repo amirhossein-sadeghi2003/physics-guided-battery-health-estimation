@@ -21,11 +21,31 @@ Current result files:
 
 - `results/capacity_fade.png`
 - `results/capacity_fade_summary.txt`
+- `results/normalized_soh.png`
+- `results/normalized_soh_summary.txt`
+- `results/b0005_discharge_voltage_curves.png`
 
 ### Capacity Fade Plot
 
 ![NASA Battery Capacity Fade](results/capacity_fade.png)
 
+
+### Normalized State of Health Plot
+
+The project also normalizes each cell's capacity by its first discharge capacity:
+
+`SOH = capacity / initial capacity`
+
+This makes the degradation trend easier to compare across cells, even when their absolute starting capacities are slightly different.
+
+Result files:
+
+- `results/normalized_soh.png`
+- `results/normalized_soh_summary.txt`
+
+![Normalized Battery State of Health](results/normalized_soh.png)
+
+In the current subset, `B0006` falls the fastest and ends at about `0.5825` SOH after 168 discharge cycles.
 
 ### Discharge Voltage Curve Example
 
@@ -113,8 +133,16 @@ The hardware version is not part of the first milestone. It should only be added
 
 ## Current Status
 
-Project roadmap created.
+The first data-processing and visualization milestone is complete.
+
+Implemented so far:
+
+- NASA battery `.mat` file inspection
+- discharge capacity extraction
+- capacity fade visualization
+- normalized SOH visualization
+- example discharge-voltage curve comparison for `B0005`
 
 Next step:
 
-- add dataset notes and the first data-loading script
+- build a simple baseline model for capacity or SOH prediction

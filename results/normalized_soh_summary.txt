@@ -1,0 +1,7 @@
+Normalized SOH summary
+======================
+
+B0005: 168 discharge cycles, final SOH = 0.7138, SOH drop = 28.62%
+B0006: 168 discharge cycles, final SOH = 0.5825, SOH drop = 41.75%
+B0007: 168 discharge cycles, final SOH = 0.7575, SOH drop = 24.25%
+B0018: 132 discharge cycles, final SOH = 0.7229, SOH drop = 27.71%
