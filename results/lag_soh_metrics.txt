@@ -1,0 +1,34 @@
+Lag-based SOH prediction metrics
+===============================
+
+Task: one-step later-cycle SOH prediction using observed lag features
+Target: normalized SOH
+Train/test split: first 70% cycles train, last 30% cycles test
+
+Features used by lag_linear_regression:
+- discharge_index
+- soh_lag_1
+- soh_lag_2
+- capacity_lag_1
+
+Important note: this is a one-step lag-feature test, not a recursive multi-step forecast.
+
+B0005:
+  naive_last_observed: train cycles = 116, test cycles = 50, MAE = 0.0364, RMSE = 0.0411
+  lag_linear_regression: train cycles = 116, test cycles = 50, MAE = 0.0045, RMSE = 0.0069
+
+B0006:
+  naive_last_observed: train cycles = 116, test cycles = 50, MAE = 0.0433, RMSE = 0.0526
+  lag_linear_regression: train cycles = 116, test cycles = 50, MAE = 0.0103, RMSE = 0.0118
+
+B0007:
+  naive_last_observed: train cycles = 116, test cycles = 50, MAE = 0.0298, RMSE = 0.0343
+  lag_linear_regression: train cycles = 116, test cycles = 50, MAE = 0.0050, RMSE = 0.0068
+
+B0018:
+  naive_last_observed: train cycles = 91, test cycles = 39, MAE = 0.0196, RMSE = 0.0225
+  lag_linear_regression: train cycles = 91, test cycles = 39, MAE = 0.0115, RMSE = 0.0165
+
+Average metrics:
+lag_linear_regression: MAE = 0.0078, RMSE = 0.0105
+naive_last_observed: MAE = 0.0323, RMSE = 0.0376

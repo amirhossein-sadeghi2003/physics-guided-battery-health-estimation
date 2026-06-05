@@ -28,6 +28,10 @@ Current result files:
 - `results/baseline_soh_metric_comparison.png`
 - `results/baseline_soh_metrics.txt`
 - `results/baseline_soh_predictions.csv`
+- `results/lag_soh_prediction.png`
+- `results/lag_soh_metric_comparison.png`
+- `results/lag_soh_metrics.txt`
+- `results/lag_soh_predictions.csv`
 
 ### Capacity Fade Plot
 
@@ -99,6 +103,35 @@ In this first test, the naive baseline is stronger on average:
 - `quadratic_polynomial`: MAE = 0.0467, RMSE = 0.0532
 
 This is a useful early result because it shows that a smoother trend model is not automatically better than a simple baseline. The next modeling step should compare stronger features or constraints against this naive reference.
+
+### Lag-Based SOH Prediction
+
+A second modeling step uses lag features from the SOH history:
+
+- `discharge_index`
+- `soh_lag_1`
+- `soh_lag_2`
+- `capacity_lag_1`
+
+This test predicts later-cycle SOH using observed lag features from nearby previous cycles. It should be read as a one-step lag-feature test, not as a recursive multi-step forecast.
+
+Result files:
+
+- `results/lag_soh_prediction.png`
+- `results/lag_soh_metric_comparison.png`
+- `results/lag_soh_metrics.txt`
+- `results/lag_soh_predictions.csv`
+
+![Lag-Based SOH Prediction](results/lag_soh_prediction.png)
+
+![Lag-Based SOH Metric Comparison](results/lag_soh_metric_comparison.png)
+
+In this setup, the lag-based linear model improves over the last-observed baseline:
+
+- `lag_linear_regression`: MAE = 0.0078, RMSE = 0.0105
+- `naive_last_observed`: MAE = 0.0323, RMSE = 0.0376
+
+This result is useful because it shows that recent SOH history carries more information than cycle index alone. The next step should be stricter forecasting, where future lag values are not assumed to be observed.
 
 ### Capacity Fade Summary
 
@@ -176,7 +209,8 @@ Implemented so far:
 - normalized SOH visualization
 - example discharge-voltage curve comparison for `B0005`
 - baseline later-cycle SOH prediction
+- lag-based one-step SOH prediction
 
 Next step:
 
-- compare stronger SOH models against the naive last-observed baseline
+- test stricter SOH forecasting where future lag values are generated recursively
