@@ -1,0 +1,13 @@
+Recursive forecast error analysis
+=================================
+
+This analysis checks where the recursive SOH forecast drifts during the test window.
+The recursive model feeds its own predictions back as future lag values, so error can accumulate over time.
+
+B0005: test cycles = 50, mean recursive abs error = 0.0233, max recursive abs error = 0.0692 at cycle 168, final abs error = 0.0692 at cycle 168
+B0006: test cycles = 50, mean recursive abs error = 0.0481, max recursive abs error = 0.0788 at cycle 151, final abs error = 0.0763 at cycle 168
+B0007: test cycles = 50, mean recursive abs error = 0.0255, max recursive abs error = 0.0607 at cycle 168, final abs error = 0.0607 at cycle 168
+B0018: test cycles = 39, mean recursive abs error = 0.0356, max recursive abs error = 0.0757 at cycle 121, final abs error = 0.0569 at cycle 132
+
+Largest average recursive drift:
+B0006 with mean absolute error 0.0481

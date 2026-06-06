@@ -36,6 +36,9 @@ Current result files:
 - `results/recursive_soh_forecast_metric_comparison.png`
 - `results/recursive_soh_forecast_metrics.txt`
 - `results/recursive_soh_forecast_predictions.csv`
+- `results/recursive_forecast_error_analysis.txt`
+- `results/recursive_forecast_error_analysis.csv`
+- `results/recursive_forecast_error_by_battery.png`
 
 ### Capacity Fade Plot
 
@@ -162,6 +165,20 @@ Average test metrics:
 
 The recursive model is much less accurate than the one-step lag model and ends up close to the naive baseline. This is an important result: using observed future lag values makes the task easier, while recursive forecasting exposes accumulated prediction error.
 
+### Recursive Forecast Error Analysis
+
+The recursive forecast is also checked for drift across the test window.
+
+Result files:
+
+- `results/recursive_forecast_error_analysis.txt`
+- `results/recursive_forecast_error_analysis.csv`
+- `results/recursive_forecast_error_by_battery.png`
+
+![Recursive Forecast Error by Battery](results/recursive_forecast_error_by_battery.png)
+
+In this run, `B0006` has the largest average recursive drift with a mean absolute SOH error of `0.0481`. For `B0005` and `B0007`, the largest recursive error occurs at the final test cycle, which supports the idea that prediction error can accumulate over a recursive forecast horizon.
+
 ### Capacity Fade Summary
 
 From the first four batteries:
@@ -240,6 +257,7 @@ Implemented so far:
 - baseline later-cycle SOH prediction
 - lag-based one-step SOH prediction
 - recursive multi-step SOH forecasting
+- recursive forecast drift analysis
 
 Next step:
 
