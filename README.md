@@ -32,6 +32,10 @@ Current result files:
 - `results/lag_soh_metric_comparison.png`
 - `results/lag_soh_metrics.txt`
 - `results/lag_soh_predictions.csv`
+- `results/recursive_soh_forecast.png`
+- `results/recursive_soh_forecast_metric_comparison.png`
+- `results/recursive_soh_forecast_metrics.txt`
+- `results/recursive_soh_forecast_predictions.csv`
 
 ### Capacity Fade Plot
 
@@ -133,6 +137,31 @@ In this setup, the lag-based linear model improves over the last-observed baseli
 
 This result is useful because it shows that recent SOH history carries more information than cycle index alone. The next step should be stricter forecasting, where future lag values are not assumed to be observed.
 
+### Recursive SOH Forecast
+
+The next test makes the lag-based setup stricter.
+
+The earlier lag model uses observed lag values inside the test window. This script adds a recursive forecast where the model must feed its own predicted SOH values back into the next step.
+
+Result files:
+
+- `results/recursive_soh_forecast.png`
+- `results/recursive_soh_forecast_metric_comparison.png`
+- `results/recursive_soh_forecast_metrics.txt`
+- `results/recursive_soh_forecast_predictions.csv`
+
+![Recursive SOH Forecast](results/recursive_soh_forecast.png)
+
+![Recursive SOH Forecast Metric Comparison](results/recursive_soh_forecast_metric_comparison.png)
+
+Average test metrics:
+
+- `lag_one_step_linear`: MAE = 0.0078, RMSE = 0.0105
+- `naive_last_observed`: MAE = 0.0323, RMSE = 0.0376
+- `recursive_lag_linear`: MAE = 0.0331, RMSE = 0.0375
+
+The recursive model is much less accurate than the one-step lag model and ends up close to the naive baseline. This is an important result: using observed future lag values makes the task easier, while recursive forecasting exposes accumulated prediction error.
+
 ### Capacity Fade Summary
 
 From the first four batteries:
@@ -210,7 +239,8 @@ Implemented so far:
 - example discharge-voltage curve comparison for `B0005`
 - baseline later-cycle SOH prediction
 - lag-based one-step SOH prediction
+- recursive multi-step SOH forecasting
 
 Next step:
 
-- test stricter SOH forecasting where future lag values are generated recursively
+- improve recursive SOH forecasting with better features or monotonic constraints
