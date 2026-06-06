@@ -190,20 +190,17 @@ From the first four batteries:
 
 Among these four cells, `B0006` shows the largest relative capacity loss in the current subset.
 
-This is still an early data-processing stage. The project has not yet built predictive models or physics-guided constraints.
+The project now includes both data visualization and baseline SOH forecasting. The recursive forecast result is kept in the README because it shows a useful limitation: one-step lag prediction looks strong, but recursive forecasting is much harder once the model must feed its own predictions forward.
 
 ## Planned Direction
 
-The project will follow this path:
+The next useful steps are:
 
-1. Load and inspect a real battery aging dataset
-2. Visualize capacity fade over cycles
-3. Plot voltage, current, and temperature behavior during charge/discharge
-4. Build baseline ML models for capacity or health prediction
-5. Add physics-guided constraints such as monotonic capacity degradation
-6. Compare baseline ML against physics-guided modeling
-7. Create visual result dashboards
-8. Later, optionally connect the workflow to simple ESP32-based battery voltage/current logging
+1. keep the recursive forecast results as the honest modeling baseline
+2. test better features or monotonic constraints without overstating the result
+3. add a small Arduino-based hardware logging extension
+4. use real voltage/current/temperature logs as a limited physical comparison layer
+5. keep the project framed as battery health analysis, not a production BMS
 
 ## Why This Project Fits My Portfolio
 
@@ -220,32 +217,39 @@ It fits my broader direction in intelligent physical systems because it combines
 
 ## Planned Visual Results
 
-The project should eventually include:
+The repository now includes several core result figures:
 
 - capacity fade curves
-- voltage-discharge curves
-- true vs predicted capacity
-- remaining useful life trend
-- prediction error plots
-- model comparison figures
-- a battery health dashboard-style summary
+- normalized SOH curves
+- discharge-voltage curve comparison
+- baseline SOH prediction plots
+- lag-based SOH prediction plots
+- recursive forecast plots
+- recursive forecast error plots
+
+Future plots may include voltage, current, power, and temperature curves from the hardware logger.
 
 ## Planned Hardware Extension
 
-A later hardware version may use:
+A later hardware version is planned around simple Arduino-based battery logging.
 
-- ESP32
-- Li-ion battery
-- INA219 or INA226 voltage/current sensor
-- temperature sensor
-- simple load for discharge testing
-- optional OLED or SD-card logging
+Planned hardware:
 
-The hardware version is not part of the first milestone. It should only be added after the dataset-based modeling pipeline is working.
+- Arduino UNO R3
+- INA226 voltage/current monitor
+- DS18B20 temperature sensor
+- TP4056/TC4056 charger and protection module
+- single 18650 battery holder
+- 18650 Li-ion cell
+- 27 ohm and 10 ohm cement load resistors
+
+The hardware extension is documented here:
+
+- [`docs/hardware_logging_plan.md`](docs/hardware_logging_plan.md)
+
+This extension is meant for short voltage/current/temperature logging experiments. It is not a production battery management system, a controlled battery cycler, or an accurate SOH estimator from a few short tests.
 
 ## Current Status
-
-The first data-processing and visualization milestone is complete.
 
 Implemented so far:
 
@@ -258,7 +262,8 @@ Implemented so far:
 - lag-based one-step SOH prediction
 - recursive multi-step SOH forecasting
 - recursive forecast drift analysis
+- hardware logging plan
 
 Next step:
 
-- improve recursive SOH forecasting with better features or monotonic constraints
+- add the Arduino logger skeleton after the hardware parts are ready
