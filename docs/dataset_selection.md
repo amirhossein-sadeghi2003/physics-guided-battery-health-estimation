@@ -1,94 +1,56 @@
-# Dataset Selection Notes
+# Dataset Selection
 
-## Selected First Dataset
+## Selected Dataset
 
-The first dataset planned for this project is the NASA Li-ion Battery Aging Dataset.
+This project uses the NASA Prognostics Center of Excellence Battery Data Set:
 
-This dataset is a good first choice because it is connected to battery degradation and prognostics, and it contains real battery test data rather than only synthetic examples.
+- [official repository and citation](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/)
+- [complete dataset download](https://phm-datasets.s3.amazonaws.com/NASA/5.+Battery+Data+Set.zip)
 
-## Why This Dataset Fits the Project
+The selected cells are `B0005`, `B0006`, `B0007`, and `B0018`.
 
-This project is focused on physics-guided battery health estimation.
+## Why It Fits
 
-The NASA battery dataset fits because it can support:
+The dataset contains repeated charge, discharge, and impedance operations from real Li-ion aging experiments. It supports:
 
-- capacity fade visualization
-- cycle-based degradation analysis
-- voltage and current curve inspection
-- temperature-aware analysis
-- baseline capacity or state-of-health prediction
-- later physics-guided constraints such as monotonic degradation behavior
+- capacity-fade analysis;
+- normalized SOH calculation;
+- within-cycle voltage inspection;
+- chronological later-cycle forecasting;
+- analysis of forecast drift and local capacity recovery.
 
-The first goal is not to build a full battery management system. The first goal is to understand the dataset, create reliable visualizations, and build a simple baseline before adding physics-guided modeling.
+## Current Public Representation
 
-## Expected Data Types
+The raw MATLAB files remain outside Git. The tracked cycle-level table stores:
 
-The dataset is expected to include battery operation records such as:
+- battery identifier;
+- original cycle index;
+- discharge-cycle index;
+- ambient temperature;
+- measured discharge capacity;
+- number of within-cycle samples.
 
-- charge cycles
-- discharge cycles
-- impedance measurements
-- measured voltage
-- measured current
-- measured temperature
-- time-series values within cycles
-- capacity values for discharge cycles
+The current table has 636 rows with no missing values or duplicate battery/discharge-index pairs.
 
-The exact structure should be verified after downloading and inspecting the files.
+## Implemented Modeling Scope
 
-## First Analysis Questions
+The repository currently evaluates:
 
-The first milestone should answer these questions:
+1. a last-observed SOH baseline;
+2. quadratic extrapolation from cycle index;
+3. one-step linear prediction from two observed SOH lags;
+4. recursive forecasting using the model's own prior predictions;
+5. recursive error growth across the test horizon.
 
-1. Which battery cells are available?
-2. How many cycles does each battery have?
-3. Which cycles include capacity values?
-4. Does capacity generally decrease over cycle number?
-5. What do voltage curves look like during discharge?
-6. Are there missing or irregular records?
-7. Which target should be modeled first: capacity, state of health, or remaining useful life?
-
-## First Visualizations
-
-The first useful plots should be:
-
-- capacity vs cycle number
-- discharge voltage vs time for selected cycles
-- temperature vs time for selected cycles
-- current vs time for selected cycles
-- battery-to-battery capacity fade comparison
-
-## Modeling Plan
-
-The modeling should start simple:
-
-1. Build a clean cycle-level table.
-2. Use cycle number and simple discharge features as inputs.
-3. Predict capacity or state of health.
-4. Compare baseline models.
-5. Add physics-guided constraints only after the baseline is working.
+The evaluation is chronological but remains within each battery. It does not test whether a model trained on some cells generalizes to a different cell.
 
 ## Physics-Guided Direction
 
-The first physics-guided idea should be conservative and defensible.
+No physics-guided constraint is implemented in the current version. A future extension should only use that label after adding and evaluating a concrete mechanism, such as:
 
-Possible constraints:
+- a defensible monotonic or bounded formulation;
+- physically meaningful voltage, current, temperature, or impedance features;
+- an electrochemical or equivalent-circuit relationship;
+- an explicit comparison with the unconstrained baseline.
 
-- capacity should generally not increase over long-term aging
-- predicted state of health should stay within a realistic range
-- model behavior should be checked against cycle progression
-- noisy local capacity recovery should not be over-interpreted as real long-term improvement
-
-This should be called physics-guided modeling unless a real differential-equation residual is implemented later.
-
-## Hardware Extension Later
-
-A later hardware version could collect simple battery discharge logs using:
-
-- ESP32
-- INA219 or INA226 voltage/current sensor
-- temperature sensor
-- Li-ion battery
-- simple discharge load
-
-That hardware extension should come after the dataset-based workflow is working.
+Remaining useful life is also outside the current implementation.

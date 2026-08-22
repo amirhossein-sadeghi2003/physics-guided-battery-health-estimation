@@ -1,48 +1,54 @@
 # Data Loading Notes
 
-The first data-loading step is focused on understanding the raw NASA battery `.mat` files before building a processed dataset.
+## Source
 
-Raw data should be placed under:
+The project uses the Battery Data Set from the NASA Prognostics Center of Excellence:
 
-    data/raw/
+- [NASA PCoE Data Set Repository](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/)
+- [Battery Data Set download](https://phm-datasets.s3.amazonaws.com/NASA/5.+Battery+Data+Set.zip)
 
-Raw data files are intentionally not tracked by Git.
+Dataset citation:
 
-## First Inspection Script
+> B. Saha and K. Goebel (2007). “Battery Data Set”, NASA Prognostics Data Repository, NASA Ames Research Center, Moffett Field, CA.
 
-Script:
+## Raw Files
 
-    src/inspect_raw_battery_data.py
+Raw MATLAB files are intentionally not tracked. Extract the NASA archive and place the required `B*.mat` files anywhere under:
 
-Purpose:
+```text
+data/raw/
+```
 
-- find `.mat` files in `data/raw/`
-- print top-level MATLAB keys
-- show array shapes and data types
-- confirm the raw structure before writing a converter
+Inspect their structure with:
 
-Run:
+```bash
+python src/inspect_raw_battery_data.py
+```
 
-    python src/inspect_raw_battery_data.py
+The script reports top-level MATLAB keys, array shapes, and data types.
 
-Expected first result before downloading data:
+## Capacity Extraction
 
-    No .mat files found in data/raw/
+Build the tracked cycle-level table with:
 
-Expected result after adding NASA battery files:
+```bash
+python src/extract_discharge_capacity.py
+```
 
-- list of battery files
-- top-level keys
-- MATLAB structure information
+The extractor recursively finds `B*.mat` files under `data/raw/` and writes:
 
-## Next Data Step
+```text
+data/processed/discharge_capacity.csv
+```
 
-After the raw structure is confirmed, the next script should extract discharge cycles into a clean table with fields such as:
+The current public table contains 636 discharge cycles from `B0005`, `B0006`, `B0007`, and `B0018`.
 
-- battery_id
-- cycle_index
-- capacity
-- voltage_measured
-- current_measured
-- temperature_measured
-- time
+## Voltage-Curve Input
+
+`src/plot_discharge_voltage_curves.py` uses one fixed raw-data path:
+
+```text
+data/raw/nasa_battery/arc_fy08q4/B0005.mat
+```
+
+Place `B0005.mat` there before regenerating the discharge-voltage figure.

@@ -44,23 +44,24 @@ def build_features(df):
         group = group.sort_values("discharge_index").copy()
         group["soh_lag_1"] = group["soh"].shift(1)
         group["soh_lag_2"] = group["soh"].shift(2)
-        group["capacity_lag_1"] = group["capacity_ah"].shift(1)
         frames.append(group)
 
     features = pd.concat(frames, ignore_index=True)
-    features = features.dropna(
-        subset=["soh_lag_1", "soh_lag_2", "capacity_lag_1"]
-    ).copy()
+    features = features.dropna(subset=["soh_lag_1", "soh_lag_2"]).copy()
 
     return features
 
 
-def recursive_forecast(test_index_values, coefficients, last_soh_1, last_soh_2, initial_capacity):
+def recursive_forecast(
+    test_index_values,
+    coefficients,
+    last_soh_1,
+    last_soh_2,
+):
     predictions = []
 
     previous_soh_1 = float(last_soh_1)
     previous_soh_2 = float(last_soh_2)
-    previous_capacity = previous_soh_1 * initial_capacity
 
     for discharge_index in test_index_values:
         X_next = np.array(
@@ -68,7 +69,6 @@ def recursive_forecast(test_index_values, coefficients, last_soh_1, last_soh_2, 
                 float(discharge_index),
                 previous_soh_1,
                 previous_soh_2,
-                previous_capacity,
             ]]
         )
 
@@ -77,7 +77,6 @@ def recursive_forecast(test_index_values, coefficients, last_soh_1, last_soh_2, 
 
         previous_soh_2 = previous_soh_1
         previous_soh_1 = predicted_soh
-        previous_capacity = predicted_soh * initial_capacity
 
     return np.array(predictions, dtype=float)
 
@@ -105,7 +104,6 @@ def main():
         "discharge_index",
         "soh_lag_1",
         "soh_lag_2",
-        "capacity_lag_1",
     ]
 
     all_predictions = []
@@ -135,14 +133,12 @@ def main():
 
         last_train_soh_1 = train["soh"].iloc[-1]
         last_train_soh_2 = train["soh"].iloc[-2]
-        first_capacity = df.loc[df["battery_id"] == battery_id, "capacity_ah"].iloc[0]
 
         y_pred_recursive = recursive_forecast(
             test_index_values=test["discharge_index"].to_numpy(dtype=float),
             coefficients=coefficients,
             last_soh_1=last_train_soh_1,
             last_soh_2=last_train_soh_2,
-            initial_capacity=float(first_capacity),
         )
 
         add_metric_row(
@@ -174,7 +170,7 @@ def main():
         )
 
         prediction_frame = test[
-            ["battery_id", "discharge_index", "soh", *feature_columns]
+            ["battery_id", "discharge_index", "soh", "soh_lag_1", "soh_lag_2"]
         ].copy()
         prediction_frame["naive_predicted_soh"] = y_pred_naive
         prediction_frame["one_step_predicted_soh"] = y_pred_one_step

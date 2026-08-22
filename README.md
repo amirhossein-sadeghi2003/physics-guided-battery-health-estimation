@@ -1,269 +1,188 @@
-# Physics-Guided Battery Health Estimation
+# Battery Health Forecasting Baselines
 
-This project is planned as a physics-guided machine learning project for battery health and remaining useful life estimation.
+This repository analyzes capacity fade and state-of-health (SOH) forecasting on four cells from the NASA Li-ion Battery Aging Dataset.
 
-The goal is to start with a real public battery aging dataset, build clear visual analysis, train baseline models, and then test whether physics-guided constraints can make the predictions more reliable.
+The main result is a gap between one-step prediction and free-running forecasting. A lag-based linear model reaches an average MAE of `0.0078` when the previous observed SOH values are available, but its recursive version reaches `0.0331`, effectively matching the `0.0323` naive baseline. Feeding predictions back into the model exposes the drift hidden by the easier one-step setup.
 
-This is not a finished battery management system yet. The first version will focus on data loading, visualization, baseline modeling, and honest evaluation.
+The current implementation is a data-driven baseline. It does **not** yet include a physics-guided constraint, remaining-useful-life estimator, or hardware logger.
 
+## Key Forecasting Result
 
-## First Results
+All models use the first 70% of each battery's cycles for training and the final 30% for testing.
 
-The first processed dataset in this repository is built from the NASA battery aging files `B0005`, `B0006`, `B0007`, and `B0018`.
+| Evaluation | Test-time information | Average MAE | Average RMSE |
+|---|---|---:|---:|
+| Naive last observed | Last SOH from the training window | `0.0323` | `0.0376` |
+| One-step lag linear | Observed SOH from preceding test cycles | `0.0078` | `0.0105` |
+| Recursive lag linear | Its own previous predictions | `0.0331` | `0.0375` |
 
-So far, the project extracts discharge-cycle capacity values and visualizes capacity fade across cycles.
+The one-step result is useful for sequential monitoring when the previous cycle has already been measured. It is not evidence of accurate long-horizon forecasting. The recursive evaluation is the stricter test because no observed future SOH value is fed back after forecasting begins.
 
-Current processed table:
+![Recursive SOH forecast](results/recursive_soh_forecast.png)
 
-- `data/processed/discharge_capacity.csv`
+## Dataset
 
-Current result files:
+The analysis uses cells `B0005`, `B0006`, `B0007`, and `B0018` from the [NASA Prognostics Center of Excellence Battery Data Set](https://www.nasa.gov/intelligent-systems-division/discovery-and-systems-health/pcoe/pcoe-data-set-repository/). NASA provides the [complete battery dataset download](https://phm-datasets.s3.amazonaws.com/NASA/5.+Battery+Data+Set.zip).
 
-- `results/capacity_fade.png`
-- `results/capacity_fade_summary.txt`
-- `results/normalized_soh.png`
-- `results/normalized_soh_summary.txt`
-- `results/b0005_discharge_voltage_curves.png`
-- `results/baseline_soh_prediction.png`
-- `results/baseline_soh_metric_comparison.png`
-- `results/baseline_soh_metrics.txt`
-- `results/baseline_soh_predictions.csv`
-- `results/lag_soh_prediction.png`
-- `results/lag_soh_metric_comparison.png`
-- `results/lag_soh_metrics.txt`
-- `results/lag_soh_predictions.csv`
-- `results/recursive_soh_forecast.png`
-- `results/recursive_soh_forecast_metric_comparison.png`
-- `results/recursive_soh_forecast_metrics.txt`
-- `results/recursive_soh_forecast_predictions.csv`
-- `results/recursive_forecast_error_analysis.txt`
-- `results/recursive_forecast_error_analysis.csv`
-- `results/recursive_forecast_error_by_battery.png`
+Dataset citation:
 
-### Capacity Fade Plot
+> B. Saha and K. Goebel (2007). “Battery Data Set”, NASA Prognostics Data Repository, NASA Ames Research Center, Moffett Field, CA.
 
-![NASA Battery Capacity Fade](results/capacity_fade.png)
+Raw MATLAB files are not tracked in this repository. The public processed table contains 636 discharge cycles and is available at:
 
+```text
+data/processed/discharge_capacity.csv
+```
 
-### Normalized State of Health Plot
+Its columns are:
 
-The project also normalizes each cell's capacity by its first discharge capacity:
+- `battery_id`
+- `cycle_index`
+- `discharge_index`
+- `ambient_temperature`
+- `capacity_ah`
+- `num_samples`
 
-`SOH = capacity / initial capacity`
+SOH is defined independently for each cell as:
 
-This makes the degradation trend easier to compare across cells, even when their absolute starting capacities are slightly different.
+```text
+SOH = measured discharge capacity / first measured discharge capacity
+```
 
-Result files:
+## Capacity Degradation
 
-- `results/normalized_soh.png`
-- `results/normalized_soh_summary.txt`
+The four cells show different degradation trajectories, including local capacity recovery in some cycles.
 
-![Normalized Battery State of Health](results/normalized_soh.png)
+![NASA battery capacity fade](results/capacity_fade.png)
 
-In the current subset, `B0006` falls the fastest and ends at about `0.5825` SOH after 168 discharge cycles.
+| Battery | Discharge cycles | Final SOH | Capacity drop |
+|---|---:|---:|---:|
+| `B0005` | 168 | `0.7138` | `28.62%` |
+| `B0006` | 168 | `0.5825` | `41.75%` |
+| `B0007` | 168 | `0.7575` | `24.25%` |
+| `B0018` | 132 | `0.7229` | `27.71%` |
 
-### Discharge Voltage Curve Example
+`B0006` has the largest relative capacity loss in this subset.
 
-The repository also includes an example discharge-voltage visualization for `B0005`.
+![Normalized battery state of health](results/normalized_soh.png)
 
-This plot compares several discharge cycles from early, middle, and later life:
+## Modeling Stages
 
-- cycle 1
-- cycle 40
-- cycle 80
-- cycle 120
-- cycle 160
+### Cycle-index baselines
 
-Result file:
+The first comparison uses only discharge-cycle index:
 
-- `results/b0005_discharge_voltage_curves.png`
+- `naive_last_observed` repeats the final SOH value in the training window;
+- `quadratic_polynomial` extrapolates a degree-2 trend.
 
-![B0005 Discharge Voltage Curves](results/b0005_discharge_voltage_curves.png)
+The naive model performs better on average:
 
-This figure makes the degradation behavior more concrete than a single capacity table. Later cycles show a shorter discharge trajectory and lower voltage sustain compared with earlier cycles.
+| Model | Average MAE | Average RMSE |
+|---|---:|---:|
+| Naive last observed | `0.0330` | `0.0386` |
+| Quadratic polynomial | `0.0467` | `0.0532` |
 
-### Baseline SOH Prediction
+The slight difference between this naive result and the `0.0323` value in the forecasting table comes from dropping the first two cycles when lag features are constructed.
 
-The first modeling step is a simple later-cycle SOH prediction baseline.
+![Baseline SOH prediction](results/baseline_soh_prediction.png)
 
-For each battery, the first 70% of discharge cycles are used for training and the last 30% are used for testing. This is an in-cell extrapolation setup, not a cross-battery generalization test.
+### One-step lag model
 
-Two simple baselines are compared:
-
-- `naive_last_observed`: repeats the last SOH value seen during training
-- `quadratic_polynomial`: fits a degree-2 trend from discharge cycle index to SOH
-
-Result files:
-
-- `results/baseline_soh_prediction.png`
-- `results/baseline_soh_metric_comparison.png`
-- `results/baseline_soh_metrics.txt`
-- `results/baseline_soh_predictions.csv`
-
-![Baseline SOH Prediction](results/baseline_soh_prediction.png)
-
-![Baseline SOH Metric Comparison](results/baseline_soh_metric_comparison.png)
-
-In this first test, the naive baseline is stronger on average:
-
-- `naive_last_observed`: MAE = 0.0330, RMSE = 0.0386
-- `quadratic_polynomial`: MAE = 0.0467, RMSE = 0.0532
-
-This is a useful early result because it shows that a smoother trend model is not automatically better than a simple baseline. The next modeling step should compare stronger features or constraints against this naive reference.
-
-### Lag-Based SOH Prediction
-
-A second modeling step uses lag features from the SOH history:
+The lag model uses:
 
 - `discharge_index`
 - `soh_lag_1`
 - `soh_lag_2`
-- `capacity_lag_1`
 
-This test predicts later-cycle SOH using observed lag features from nearby previous cycles. It should be read as a one-step lag-feature test, not as a recursive multi-step forecast.
+It is evaluated with observed lag values inside the test window and therefore represents one-step prediction, not an open-loop multi-step forecast.
 
-Result files:
+![Lag-based SOH prediction](results/lag_soh_prediction.png)
 
-- `results/lag_soh_prediction.png`
-- `results/lag_soh_metric_comparison.png`
-- `results/lag_soh_metrics.txt`
-- `results/lag_soh_predictions.csv`
+### Recursive forecast and drift
 
-![Lag-Based SOH Prediction](results/lag_soh_prediction.png)
+The recursive model begins with the final two observed training values, then feeds each prediction into the next step. Its average MAE rises to `0.0331`.
 
-![Lag-Based SOH Metric Comparison](results/lag_soh_metric_comparison.png)
+`B0006` has the largest mean recursive absolute error at `0.0481`. For `B0005` and `B0007`, the largest error occurs at the final test cycle, illustrating accumulated forecast drift.
 
-In this setup, the lag-based linear model improves over the last-observed baseline:
+![Recursive forecast error by battery](results/recursive_forecast_error_by_battery.png)
 
-- `lag_linear_regression`: MAE = 0.0078, RMSE = 0.0105
-- `naive_last_observed`: MAE = 0.0323, RMSE = 0.0376
+Detailed metrics and prediction tables are stored under `results/`.
 
-This result is useful because it shows that recent SOH history carries more information than cycle index alone. The next step should be stricter forecasting, where future lag values are not assumed to be observed.
+## Discharge Voltage Example
 
-### Recursive SOH Forecast
+The raw `B0005` data are also used to compare measured voltage curves at discharge cycles 1, 40, 80, 120, and 160. Later cycles have shorter discharge trajectories and sustain voltage for less time.
 
-The next test makes the lag-based setup stricter.
+![B0005 discharge voltage curves](results/b0005_discharge_voltage_curves.png)
 
-The earlier lag model uses observed lag values inside the test window. This script adds a recursive forecast where the model must feed its own predicted SOH values back into the next step.
+This figure requires the original `B0005.mat` file to regenerate; the cycle-level forecasting pipeline does not.
 
-Result files:
+## Reproducing the Public Pipeline
 
-- `results/recursive_soh_forecast.png`
-- `results/recursive_soh_forecast_metric_comparison.png`
-- `results/recursive_soh_forecast_metrics.txt`
-- `results/recursive_soh_forecast_predictions.csv`
+Create a virtual environment and install the dependencies:
 
-![Recursive SOH Forecast](results/recursive_soh_forecast.png)
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+```
 
-![Recursive SOH Forecast Metric Comparison](results/recursive_soh_forecast_metric_comparison.png)
+The tracked processed table is sufficient for the public downstream analysis:
 
-Average test metrics:
+```bash
+python src/plot_capacity_fade.py
+python src/plot_normalized_soh.py
+python src/train_baseline_soh_model.py
+python src/train_lag_soh_model.py
+python src/train_recursive_soh_forecast.py
+python src/analyze_recursive_forecast_errors.py
+```
 
-- `lag_one_step_linear`: MAE = 0.0078, RMSE = 0.0105
-- `naive_last_observed`: MAE = 0.0323, RMSE = 0.0376
-- `recursive_lag_linear`: MAE = 0.0331, RMSE = 0.0375
+To reproduce the raw-data extraction and voltage-curve figure, download the official NASA archive, place the relevant `.mat` files anywhere under `data/raw/`, and run:
 
-The recursive model is much less accurate than the one-step lag model and ends up close to the naive baseline. This is an important result: using observed future lag values makes the task easier, while recursive forecasting exposes accumulated prediction error.
+```bash
+python src/inspect_raw_battery_data.py
+python src/extract_discharge_capacity.py
+```
 
-### Recursive Forecast Error Analysis
+For the voltage-curve script, place `B0005.mat` at:
 
-The recursive forecast is also checked for drift across the test window.
+```text
+data/raw/nasa_battery/arc_fy08q4/B0005.mat
+```
 
-Result files:
+Then run:
 
-- `results/recursive_forecast_error_analysis.txt`
-- `results/recursive_forecast_error_analysis.csv`
-- `results/recursive_forecast_error_by_battery.png`
+```bash
+python src/plot_discharge_voltage_curves.py
+```
 
-![Recursive Forecast Error by Battery](results/recursive_forecast_error_by_battery.png)
+## Limitations
 
-In this run, `B0006` has the largest average recursive drift with a mean absolute SOH error of `0.0481`. For `B0005` and `B0007`, the largest recursive error occurs at the final test cycle, which supports the idea that prediction error can accumulate over a recursive forecast horizon.
+- Evaluation is within each battery; cross-battery generalization has not been tested.
+- The one-step lag result uses observed previous-cycle SOH values in the test window.
+- The recursive forecast uses only cycle index and SOH history; it does not use voltage, current, temperature, or impedance features.
+- All four cells in the processed subset have an ambient-temperature value of `24°C`, so temperature effects cannot be evaluated here.
+- No physics-guided loss, monotonic constraint, electrochemical model, or uncertainty estimate is implemented yet.
+- Remaining useful life is not estimated.
+- The documented Arduino logger is a future extension, not a completed experiment or battery-management system.
 
-### Capacity Fade Summary
+## Possible Next Work
 
-From the first four batteries:
+- evaluate leave-one-battery-out or other cross-cell splits;
+- add physically meaningful cycle features from voltage, current, temperature, or impedance;
+- compare unconstrained predictions with a defensible monotonic or bounded formulation;
+- evaluate forecast error as a function of horizon;
+- add hardware logging only after real measurements are available.
 
-- `B0005`: capacity drop ≈ 28.62%
-- `B0006`: capacity drop ≈ 41.75%
-- `B0007`: capacity drop ≈ 24.25%
-- `B0018`: capacity drop ≈ 27.71%
+The optional hardware concept is documented in [`docs/hardware_logging_plan.md`](docs/hardware_logging_plan.md).
 
-Among these four cells, `B0006` shows the largest relative capacity loss in the current subset.
+## Repository Structure
 
-The project now includes both data visualization and baseline SOH forecasting. The recursive forecast result is kept in the README because it shows a useful limitation: one-step lag prediction looks strong, but recursive forecasting is much harder once the model must feed its own predictions forward.
-
-## Planned Direction
-
-The next useful steps are:
-
-1. keep the recursive forecast results as the honest modeling baseline
-2. test better features or monotonic constraints without overstating the result
-3. add a small Arduino-based hardware logging extension
-4. use real voltage/current/temperature logs as a limited physical comparison layer
-5. keep the project framed as battery health analysis, not a production BMS
-
-## Why This Project Fits My Portfolio
-
-This project connects machine learning with a real physical degradation process.
-
-It fits my broader direction in intelligent physical systems because it combines:
-
-- time-series sensor data
-- physical system behavior
-- degradation modeling
-- machine learning
-- interpretable evaluation
-- possible embedded data logging in a later version
-
-## Planned Visual Results
-
-The repository now includes several core result figures:
-
-- capacity fade curves
-- normalized SOH curves
-- discharge-voltage curve comparison
-- baseline SOH prediction plots
-- lag-based SOH prediction plots
-- recursive forecast plots
-- recursive forecast error plots
-
-Future plots may include voltage, current, power, and temperature curves from the hardware logger.
-
-## Planned Hardware Extension
-
-A later hardware version is planned around simple Arduino-based battery logging.
-
-Planned hardware:
-
-- Arduino UNO R3
-- INA226 voltage/current monitor
-- DS18B20 temperature sensor
-- TP4056/TC4056 charger and protection module
-- single 18650 battery holder
-- 18650 Li-ion cell
-- 27 ohm and 10 ohm cement load resistors
-
-The hardware extension is documented here:
-
-- [`docs/hardware_logging_plan.md`](docs/hardware_logging_plan.md)
-
-This extension is meant for short voltage/current/temperature logging experiments. It is not a production battery management system, a controlled battery cycler, or an accurate SOH estimator from a few short tests.
-
-## Current Status
-
-Implemented so far:
-
-- NASA battery `.mat` file inspection
-- discharge capacity extraction
-- capacity fade visualization
-- normalized SOH visualization
-- example discharge-voltage curve comparison for `B0005`
-- baseline later-cycle SOH prediction
-- lag-based one-step SOH prediction
-- recursive multi-step SOH forecasting
-- recursive forecast drift analysis
-- hardware logging plan
-
-Next step:
-
-- add the Arduino logger skeleton after the hardware parts are ready
+```text
+data/processed/  Public cycle-level capacity table
+data/raw/        Ignored location for original NASA MATLAB files
+docs/            Dataset, loading, roadmap, and optional hardware notes
+results/         Metrics, predictions, summaries, and figures
+src/             Extraction, visualization, modeling, and evaluation scripts
+```

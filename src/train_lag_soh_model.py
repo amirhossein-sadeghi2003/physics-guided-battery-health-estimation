@@ -60,19 +60,15 @@ def main():
         group = group.sort_values("discharge_index").copy()
         group["soh_lag_1"] = group["soh"].shift(1)
         group["soh_lag_2"] = group["soh"].shift(2)
-        group["capacity_lag_1"] = group["capacity_ah"].shift(1)
         feature_frames.append(group)
 
     df_features = pd.concat(feature_frames, ignore_index=True)
-    df_features = df_features.dropna(
-        subset=["soh_lag_1", "soh_lag_2", "capacity_lag_1"]
-    ).copy()
+    df_features = df_features.dropna(subset=["soh_lag_1", "soh_lag_2"]).copy()
 
     feature_columns = [
         "discharge_index",
         "soh_lag_1",
         "soh_lag_2",
-        "capacity_lag_1",
     ]
 
     all_predictions = []
@@ -119,7 +115,7 @@ def main():
         )
 
         prediction_frame = test[
-            ["battery_id", "discharge_index", "soh", *feature_columns]
+            ["battery_id", "discharge_index", "soh", "soh_lag_1", "soh_lag_2"]
         ].copy()
         prediction_frame["naive_predicted_soh"] = y_pred_naive
         prediction_frame["lag_predicted_soh"] = y_pred_lag

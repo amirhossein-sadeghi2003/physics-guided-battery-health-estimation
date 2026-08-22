@@ -9,7 +9,6 @@ Features used by lag_linear_regression:
 - discharge_index
 - soh_lag_1
 - soh_lag_2
-- capacity_lag_1
 
 Important note: this is a one-step lag-feature test, not a recursive multi-step forecast.
 
